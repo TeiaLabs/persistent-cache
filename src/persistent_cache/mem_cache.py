@@ -14,8 +14,8 @@ class MemCache(CacheBase, Generic[T]):
     def get(self, key: str) -> T | None:
         if key in self.cache:
             return self.cache[key]
-        else:
-            return None
+        
+        return None
 
     def multi_get(self, *keys: str) -> list[T | None]:
         return [self.get(key) for key in keys]
