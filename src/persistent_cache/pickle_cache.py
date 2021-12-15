@@ -16,9 +16,9 @@ class PickleCache(CacheBase, Generic[T]):
         self.pickle_file = Path(pickle_file_path)
         self.hash_dict = {}
 
-        # if self.pickle_file.exists() and self.pickle_file.stat().st_size > 0:
-        #     with self.pickle_file.open('rb') as f:
-        #         self.hash_dict = pickle.load(f)
+        if self.pickle_file.exists() and self.pickle_file.stat().st_size > 0:
+            with self.pickle_file.open('rb') as f:
+                self.hash_dict = pickle.load(f)
 
     def get(self, key: str) -> T | None:
         if key in self.hash_dict:
