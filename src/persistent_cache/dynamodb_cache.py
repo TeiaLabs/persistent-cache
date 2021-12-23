@@ -6,8 +6,6 @@ import zlib
 
 import torch
 
-from hashlib import sha3_256
-
 from boto3.dynamodb.conditions import Key
 from boto3.dynamodb.types import Binary
 from torch import tensor
@@ -34,6 +32,13 @@ class DynamoDBCache(CacheBase, Generic[T]):
         dynamodb = boto3.resource('dynamodb', endpoint_url=self.url, 
                                                     region_name=self.region)
         try:
+            tab = dynamodb.Table(self.table_name)
+            tab.delete()
+        except:
+            print(f'Table {self.table_name} doesn\'t exists.')
+
+        try:
+            print(f'Creating Table {self.table_name}...')
             table = dynamodb.create_table(
                 TableName=self.table_name,
                 KeySchema=[
@@ -53,6 +58,7 @@ class DynamoDBCache(CacheBase, Generic[T]):
                     'WriteCapacityUnits': 10
                 }
             )
+            print(f'created!')
         except:
             print(f'Table {self.table_name} already exist!')
 
@@ -73,6 +79,7 @@ class DynamoDBCache(CacheBase, Generic[T]):
     def multi_get(self, *keys: str) -> list[T | None]:        
         return [self.get(k) for k in keys]
 
+    
     def set(self, key: str, value: Tensor):
         item_buffer = io.BytesIO()
         torch.save(value, item_buffer)    
@@ -80,6 +87,7 @@ class DynamoDBCache(CacheBase, Generic[T]):
         item_buffer = item_buffer.read()
         item_buffer = zlib.compress(item_buffer)
         self.table.put_item(Item={'key':key,'data':Binary(item_buffer)})
+
 
     def __str__(self):
         return str(self.table)
