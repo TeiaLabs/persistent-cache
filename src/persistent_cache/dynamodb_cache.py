@@ -18,9 +18,15 @@ T = TypeVar("T")
 
 
 class DynamoDBCache(CacheBase, Generic[T]):
-
-    def __init__(self, table_name, url='http://localhost:8085', 
-                                            region='poa-rs-br-al') -> None:
+    '''
+    Cache using Amazon DynamoDB.
+    '''
+    def __init__(
+        self,
+        table_name,
+        url='http://localhost:8085',
+        region='poa-rs-br-al'
+    ) -> None:
         super().__init__()
         self.hash_dict = {}
         self.table_name = table_name
@@ -29,13 +35,15 @@ class DynamoDBCache(CacheBase, Generic[T]):
         self.table = self.connect()
 
     def connect(self):
-        dynamodb = boto3.resource('dynamodb', endpoint_url=self.url, 
-                                                    region_name=self.region)
+        dynamodb = boto3.resource(
+            'dynamodb', endpoint_url=self.url,
+            region_name=self.region,
+        )
         try:
             tab = dynamodb.Table(self.table_name)
             tab.delete()
         except:
-            print(f'Table {self.table_name} doesn\'t exists.')
+            print(f'Table {self.table_name} doesn\'t exist.')
 
         try:
             print(f'Creating Table {self.table_name}...')
@@ -45,7 +53,7 @@ class DynamoDBCache(CacheBase, Generic[T]):
                     {
                         'AttributeName': 'key',
                         'KeyType': 'HASH'
-                    }                        
+                    }
                 ],
                 AttributeDefinitions=[
                     {
@@ -60,30 +68,30 @@ class DynamoDBCache(CacheBase, Generic[T]):
             )
             print(f'created!')
         except:
-            print(f'Table {self.table_name} already exist!')
+            print(f'Table {self.table_name} already exists!')
 
         return dynamodb.Table(self.table_name)
 
-    def get(self, key: str) -> T | None:        
+    def get(self, key: str) -> T | None:
         query_resp = self.table.query(
             KeyConditionExpression=Key('key').eq(key)
         )
-        
+
         if len(query_resp['Items']) > 0:
             read_buffer = io.BytesIO(zlib.decompress(bytes(query_resp['Items'][0]['data'])))
             return torch.load(read_buffer)
         else:
             return None
-        
 
-    def multi_get(self, *keys: str) -> list[T | None]:        
+
+    def multi_get(self, *keys: str) -> list[T | None]:
         return [self.get(k) for k in keys]
 
-    
+
     def set(self, key: str, value: Tensor):
         item_buffer = io.BytesIO()
-        torch.save(value, item_buffer)    
-        item_buffer.seek(0)    
+        torch.save(value, item_buffer)
+        item_buffer.seek(0)
         item_buffer = item_buffer.read()
         item_buffer = zlib.compress(item_buffer)
         self.table.put_item(Item={'key':key,'data':Binary(item_buffer)})
@@ -91,6 +99,7 @@ class DynamoDBCache(CacheBase, Generic[T]):
 
     def __str__(self):
         return str(self.table)
+
 
 if __name__ == '__main__':
     db = DynamoDBCache('table_tmp')
