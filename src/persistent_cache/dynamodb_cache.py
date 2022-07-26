@@ -25,20 +25,28 @@ class DynamoDBCache(CacheBase, Generic[T]):
         self,
         table_name,
         url='http://localhost:8085',
-        region='poa-rs-br-al'
+        region='poa-rs-br-al',
+        test_mode = False
     ) -> None:
         super().__init__()
         self.hash_dict = {}
         self.table_name = table_name
         self.url = url
         self.region = region
+        self.test_mode = test_mode
         self.table = self.connect()
 
     def connect(self):
-        dynamodb = boto3.resource(
-            'dynamodb', endpoint_url=self.url,
-            region_name=self.region,
-        )
+        if self.test_mode:
+            dynamodb = boto3.resource(
+                'dynamodb',
+                region_name=self.region,
+            )
+        else:
+            dynamodb = boto3.resource(
+                'dynamodb', endpoint_url=self.url,
+                region_name=self.region,
+            )
         try:
             tab = dynamodb.Table(self.table_name)
             tab.delete()

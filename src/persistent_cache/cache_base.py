@@ -8,15 +8,15 @@ T = TypeVar("T")
 
 class CacheBase(Generic[T]):
     @abstractmethod
-    def get(self, key: str) -> T | None:
+    async def get(self, key: str) -> T | None:
         pass
 
     @abstractmethod
-    def multi_get(self, *keys: str) -> T:
+    async def multi_get(self, *keys: str) -> T:
         pass
 
     @abstractmethod
-    def set(self, key: str, value: T):
+    async def set(self, key: str, value: T):
         pass
 
     @abstractmethod
