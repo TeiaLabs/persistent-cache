@@ -23,10 +23,10 @@ class PickleCache(CacheBase, Generic[T]):
     def get(self, key: str) -> T | None:
         if key in self.hash_dict:
             return self.hash_dict[key]
-        
+
         return None
 
-    def multi_get(self, *keys: str) -> list[T | None]:        
+    def multi_get(self, *keys: str) -> list[T | None]:
         return [self.hash_dict[k] for k in keys]
 
     def set(self, key: str, value: T):
