@@ -31,7 +31,7 @@ setuptools.setup(
     # classifiers=classifiers,
     keywords="",
     entry_points={},
-    python_requires=">=3.8, <=3.10",
+    python_requires=">=3.8, <=3.11",
     install_requires=requirements,
     extras_require={
         # "dev": requirements_dev,
